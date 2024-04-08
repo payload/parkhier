@@ -1,3 +1,3 @@
 import parkhier
 
-print(parkhier.hello())
+parkhier.main()

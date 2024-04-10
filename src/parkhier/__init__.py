@@ -7,15 +7,16 @@ HTTP_CACHE_USE = True
 CACHE_DIR = ".cache"
 
 
-def hello():
+def fetch_parking_spaces(end=None):
     text = http_get(DRESDEN_DE)
     soup = bs4.BeautifulSoup(text, "html.parser")
     tables = soup.select(".article_content table")
     spaces = (extract_parking_space_from_html_table(table) for table in tables)
     spaces = [space for space_group in spaces for space in space_group]
-    for space in spaces[:10]:
+    spaces = spaces if not end else spaces[:end]
+    for space in spaces:
         space["details"] = fetch_parking_space_details(space)
-    return spaces[:3]
+    return spaces
 
 
 def http_get(url: str):
@@ -52,6 +53,13 @@ def write_cache(filename: str, text: str):
         f.write(text)
 
 
+def cache_timestamp():
+    try:
+        return float(read_cache("timestamp"))
+    except Exception:
+        return 0.0
+
+
 def cache_outdated():
     import time
 
@@ -71,6 +79,8 @@ def fetch_parking_space_details(space: dict):
     gps_lon = extract_label_value_from_html_divs(soup, "GPS-Lon:")
     gps_lat = extract_label_value_from_html_divs(soup, "GPS-Lat:")
     image_url = urljoin(DRESDEN_DE, soup.select_one('img[alt="image"]')["src"])
+    # TODO gps coordinates are completely off on dresden.de details page
+    #      need to enter or find correct gps coordinates, need to double check
 
     return {
         "tendency": tendency,
@@ -122,7 +132,6 @@ def extract_indicator_td(td: bs4.Tag):
     return " ".join(x for x in known if x in classes)
 
 
-def main():
+def main_fetch():
     import json
-
-    print(json.dumps(hello(), indent=2))
+    print(json.dumps(fetch_parking_spaces(end=3), indent=2))

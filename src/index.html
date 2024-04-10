@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>parkhier</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        #map {
+            height: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>parkhier</h1>
+    <p>parkhier is a parking app that allows you to find parking spots in your area.</p>
+    <p>It is currently under development.</p>
+    <div id="map"></div>
+</body>
+<script>
+    var map = L.map('map').setView([51.0506700789, 13.741789104], 13);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    async function fetch_parking_spaces() {
+        const response = await fetch('/api')
+        const data = await response.json()
+        data.spaces.forEach(space => {
+            const lat = +space.details.gps_lat;
+            const lon = +space.details.gps_lon;
+            console.log(lat, lon, 'text')
+            L.marker([lat, lon])
+                .addTo(map)
+                .bindPopup(`<b>${space.location}</b>`)
+                .openPopup();
+        })
+    }
+
+    fetch_parking_spaces()
+</script>
+
+</html>
